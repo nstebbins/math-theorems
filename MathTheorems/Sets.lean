@@ -1,78 +1,133 @@
-import Mathlib.Init.ZeroOne
-import Mathlib.Algebra.Group.Defs
 import Mathlib.Tactic
 
-namespace Group1
+namespace Set1
 
-class Group (G : Type) extends Mul G, One G, Inv G where
-  mul_assoc : ∀ a b c : G, a * b * c = a * (b * c)
-  left_invertible : ∀ a : G, a * a⁻¹ = 1
-  right_invertible : ∀ a : G, a⁻¹ * a = 1
-  one_mul : ∀ a : G, 1 * a = a
-  mul_one : ∀ a : G, a * 1 = a
+set_option diagnostics true
 
-variable (a b c : G)[Group G]
+variable {X: Type}
+variable (A : Set X)
+
+/- how do i define successor from set theory? -/
+def Singleton : Set (Set X) := {x | x = A}
+def Successor : Set X := {x | x ∈ A ∨ x ∈ Singleton}
+
+end Set1
 
 /-
-  Properties of Groups
+  A Book of Set Theory
+  Chapter 1.2
 -/
 
-theorem right_cancellation_law : a * c = b * c → a = b := by
-  intros h₁
-  rw [← Group.mul_one a]
-  rw [← Group.left_invertible c]
-  rw [← Group.mul_assoc]
-  rw [h₁]
-  -- go back out from whence you came
-  rw [Group.mul_assoc, Group.left_invertible, Group.mul_one]
+namespace Set2
 
-theorem left_cancellation_law : c * a = c * b → a = b := by
-  intros h₁
-  rw [← Group.one_mul a]
-  rw [← Group.right_invertible c]
-  rw [Group.mul_assoc]
-  rw [h₁]
-  -- go back out from whence you came
-  rw [← Group.mul_assoc, Group.right_invertible, Group.one_mul]
+variable {X: Type}
+variable (A B : Set X)
 
-theorem inverses_of_each_other : a * b = 1 → a = b⁻¹ ∧ b = a⁻¹ := by
-  intros h₁
-  constructor
-  . apply right_cancellation_law a b⁻¹ b
-    rw [Group.right_invertible]
-    assumption
-  . rw [← Group.left_invertible a] at h₁
-    apply left_cancellation_law b a⁻¹ a
-    assumption
+/-
+  Theorem 1.11
+-/
 
-theorem inverse_is_unique : a * b = 1 ∧ a * c = 1 → b = c := by
+example : A = A := by
+  ext x₁
+  constructor <;> intros h₁
+  repeat assumption
+
+example : (A = B) → (B = A) := by
+  repeat rw [Set.ext_iff] at *
+  intros h₁ a
+  specialize h₁ a
+  cases' h₁ with l₁ r₁
+  constructor <;> intros h₂
+  apply r₁ h₂
+  apply l₁ h₂
+
+example : (A = B ∧ B = C) → A = C := by
   intros h₁
   cases' h₁ with l₁ r₁
-  apply inverses_of_each_other at l₁
-  apply inverses_of_each_other at r₁
-  cases' l₁ with h₁ h₂
-  cases' r₁ with h₃ h₄
-  rw [h₂, h₄]
+  repeat rw [Set.ext_iff] at *
+  intros a₁
+  specialize l₁ a₁
+  specialize r₁ a₁
+  cases' l₁ with l₁ l₂
+  cases' r₁ with r₁ r₂
+  constructor <;> intros H₁
+  apply r₁
+  apply l₁
+  assumption
+  apply l₂
+  apply r₂
+  assumption
 
-class AbelianGroup (G: Type) extends Group G where
-  mul_comm : ∀ a b : G, a * b = b * a
-
-structure Subgroup (X: Type)[Group X] where
-  carrier: Set X  -- subset
-  closed_under_mul: ∀ a b : X, a ∈ carrier ∧ b ∈ carrier → a * b ∈ carrier
-  closed_under_inv: ∀ a : X, a ∈ carrier → a⁻¹ ∈ carrier
-  nonempty: ∃ a : X, a ∈ carrier
-
-variable (s : Subgroup G)
-
-theorem identity_in_subgroup : (1: G) ∈ s.carrier := by
-  cases' s.nonempty with a h₁
-  rw [← Group.left_invertible a]
-  apply s.closed_under_mul a (a⁻¹)
+example : (A ⊆ B ∧ B ⊆ A) → A = B := by
+  intros h₁
+  cases' h₁ with l₁ r₁
+  rw [Set.subset_def] at *
+  rw [Set.ext_iff]
+  intros a
+  specialize l₁ a
+  specialize r₁ a
   constructor
-  case intro.right =>
-    apply s.closed_under_inv a
-    assumption
-  case intro.left => assumption
+  exact l₁
+  exact r₁
 
-end Group1
+example : (A ⊆ B ∧ B ⊆ C) → A ⊆ C := by
+  intros h₁
+  cases' h₁ with l₁ r₁
+  rw [Set.subset_def] at *
+  intros a
+  specialize l₁ a
+  specialize r₁ a
+  intros h₁
+  apply r₁
+  apply l₁
+  assumption
+
+/-
+  Theorem 1.17
+-/
+
+example : ∅ ⊆ A := by
+  rw [Set.subset_def]
+  intros a h₁
+  exfalso
+  apply h₁
+
+/-
+  Theorem 1.20
+-/
+
+example : A ⊆ A ∪ B := by
+  rw [Set.subset_def]
+  intros a h₁
+  rw [Set.union_def]
+  rw [Set.mem_def, Set.setOf_app_iff]
+  left
+  assumption
+
+example : B ⊆ A ∪ B := by
+  rw [Set.subset_def]
+  intros a h₁
+  rw [Set.union_def]
+  rw [Set.mem_def, Set.setOf_app_iff]
+  right
+  assumption
+
+example : A ∩ B ⊆ A := by
+  rw [Set.subset_def]
+  intros a h₁
+  rw [Set.inter_def] at h₁
+  rw [Set.mem_def, Set.setOf_app_iff] at h₁
+  cases' h₁ with l₁ r₁
+  assumption
+
+example : A ∩ B ⊆ B := by
+  rw [Set.subset_def]
+  intros a h₁
+  rw [Set.inter_def] at h₁
+  rw [Set.mem_def, Set.setOf_app_iff] at h₁
+  cases' h₁ with l₁ r₁
+  assumption
+
+
+
+end Set2

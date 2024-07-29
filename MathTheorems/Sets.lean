@@ -2,8 +2,6 @@ import Mathlib.Tactic
 
 namespace Set1
 
-set_option diagnostics true
-
 variable {X: Type}
 variable (A : Set X)
 
@@ -253,6 +251,40 @@ example : (A ∩ B)ᶜ = Aᶜ ∪ Bᶜ := by
   case h.mpr => sorry
 
 /-
+  Theorem 1.25
+-/
+
+example: A ∪ B = B ∪ A := by
+  ext x
+  repeat rw [Set.union_def]
+  constructor <;> intros h₁
+  . repeat rw [Set.mem_def, Set.setOf_app_iff] at *
+    cases' h₁ with l r
+    right; assumption
+    left; assumption
+  . repeat rw [Set.mem_def, Set.setOf_app_iff] at *
+    cases' h₁ with l r
+    right; assumption
+    left; assumption
+
+example: A ∩ B = B ∩ A := by sorry
+
+example: A ∪ A = A := by
+  ext x
+  repeat rw [Set.union_def]
+  constructor <;> intros h₁
+  . repeat rw [Set.mem_def, Set.setOf_app_iff] at h₁
+    cases' h₁ with l r
+    repeat assumption
+  . repeat rw [Set.mem_def, Set.setOf_app_iff]
+    left
+    assumption
+
+example: A ∩ A = A := by sorry
+
+-- TODO: include other laws
+
+/-
   Theorem 1.26
 -/
 
@@ -323,3 +355,57 @@ example : A ∪ Aᶜ = Set.univ := by
   case h.mpr => sorry
 
 end Set2
+
+namespace Set3
+
+/-
+  Theorem 1.27
+-/
+
+variable {X Y: Type}
+variable (a x y u v : X)
+variable (A B C : Set X)
+variable (A' : Set (Set (Set X)))
+
+open Batteries.ExtendedBinder
+
+def singleton1 (x : X) : Set X := {z | z = x}
+def doubleton (x y : X) : Set X := {z | z = x ∨ z = y}
+
+example : doubleton x y = doubleton u v → (x = u ∧ y = v) ∨ (x = v ∧ y = u) := by
+  intros h₁
+  repeat rw [doubleton] at h₁
+  rw [Set.ext_iff] at h₁
+  specialize h₁ a
+  cases' h₁ with l r
+  sorry -- unsure how to proceed
+
+/-
+  Definition 1.29 (Ordered Pair)
+-/
+
+def op (x y : X) : Set (Set X) := doubleton (singleton1 x) (doubleton x y)
+
+/-
+  Theorem 1.30
+-/
+
+variable (d₁ d₂ : X × Y)
+
+-- note: this proof is a bit higher level than set theory tbh
+
+example : d₁ = d₂ → d₁.fst = d₂.fst ∧ d₁.snd = d₂.snd := by
+  intros h₁
+  cases' d₁ with x₁ y₁
+  cases' d₂ with x₂ y₂
+  rw [h₁]
+  simp
+
+/-
+  Theorem 1.32 (Properties of Cartesian Products)
+-/
+
+-- fixme: doesn't work as-is
+-- example : A × (B ∩ C) = (A × B) ∩ (A × C) := by sorry
+
+end Set3

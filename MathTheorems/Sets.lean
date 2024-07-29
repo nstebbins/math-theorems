@@ -296,10 +296,30 @@ example : A ∩ Set.univ = A := by
 
 example : Set.univᶜ = (∅ : Set X) := by sorry
 
-example : (∅ : Set X)ᶜ = Set.univ := by sorry
+example : (∅ : Set X)ᶜ = Set.univ := by
+  ext x
+  constructor <;> intros h₁
+  case h.mp => trivial
+  case h.mpr =>
+    rw [Set.compl_def]
+    repeat rw [Set.mem_def, Set.setOf_app_iff]
+    by_contra h₂
+    cases' h₂
 
-example : A ∩ Aᶜ = ∅ := by sorry
+example : A ∩ Aᶜ = ∅ := by
+  ext x
+  constructor <;> intros h₁
+  case h.mp =>
+    exfalso
+    cases' h₁ with l r
+    apply r
+    assumption
+  case h.mpr => cases' h₁
 
-example : A ∪ Aᶜ = Set.univ := by sorry
+example : A ∪ Aᶜ = Set.univ := by
+  ext x
+  constructor <;> intros h₁
+  case h.mp => trivial
+  case h.mpr => sorry
 
 end Set2

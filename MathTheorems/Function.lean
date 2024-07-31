@@ -98,7 +98,7 @@ lemma sur1 (h₁ : f.Surjective) (h₂ : g.Surjective) : (g ∘ f).Surjective :=
   rw [← h₁]
   rfl
 
-example (h₁ : f.Bijective) (h₂ : g.Bijective) : (g ∘ f).Bijective := by
+lemma bij1 (h₁ : f.Bijective) (h₂ : g.Bijective) : (g ∘ f).Bijective := by
   rw [Function.Bijective] at *
   cases' h₁ with l₁ r₁
   cases' h₂ with l₂ r₂

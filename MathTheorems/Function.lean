@@ -137,22 +137,29 @@ example : (g ∘ f).Surjective → g.Surjective := by
 
 /- Question 7 -/
 
+lemma comp_eq : (g ∘ f) x = g (f x) := rfl
+#print comp_eq
+
 example : g.Injective ↔ (g ∘ f = g ∘ f₂) → f = f₂ := by
   constructor
   . intros h₁ h₂
     rw [Function.Injective] at h₁
+    ext x₁
+    apply h₁
+    rw [← comp_eq f g]
+    rw [h₂]
+    rw [comp_eq]
+  . intros h₁
+    rw [Function.Injective]
+    intros y₁ y₂ h₂
+    -- use (id : Y → Y) for g in h₁
     sorry
-  . sorry
-  done
 
 /- Question 8 -/
 
 variable (f : X → Y)
 variable (x : X)
 variable (g g₂ : Y → Z)
-
-lemma comp_eq : (g ∘ f) x = g (f x) := rfl
-#print comp_eq
 
 example : f.Surjective ↔ (g ∘ f = g₂ ∘ f) → g = g₂ := by
   constructor
@@ -162,12 +169,12 @@ example : f.Surjective ↔ (g ∘ f = g₂ ∘ f) → g = g₂ := by
     specialize h₁ y₁
     cases' h₁ with x₁ h₁
     repeat rw [← h₁]
-    rw [← comp_eq f x₁ g]
+    rw [← comp_eq f g]
     rw [h₂]
     rfl
   . intros h₁
     rw [Function.Surjective]
     intros y₁
-    sorry
+    sorry -- i don't know what to use here
 
 end Function1

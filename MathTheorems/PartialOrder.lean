@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Mathlib.Order.RelClasses
 
 namespace PartialOrder1
 
@@ -63,6 +64,29 @@ example (h₁ : IsInitialSegment A P) (h₂ : IsInitialSegment P Q) : IsInitialS
 
 end PartialOrder1
 
+namespace PartialOrder1b
+
+variable {α : Type}
+variable {A B : Set α}
+
+/-
+  A Book of Set Theory
+  Remark 4.9
+-/
+
+-- subset is a partial order
+#print subset_trans
+
+instance : PartialOrder (Set α) where
+  le := fun A B => A ⊆ B
+  le_refl := by sorry
+  le_trans := by
+    intros a b c
+    exact subset_trans
+  le_antisymm := by
+    intros a b
+    exact subset_antisymm
+
 namespace PartialOrder2
 
 variable {A B C : Type}[PartialOrder A][PartialOrder B][PartialOrder C]
@@ -125,6 +149,52 @@ example : Iso (id : A → A) := by
     rfl
 
 /-
+  Theorem 4.14(ii)
+-/
+
+#print Function.invFun
+
+variable [h : Nonempty A]
+
+variable (b : B)
+
+-- you're allowed to use rw but then you have to prove the assumption right after
+lemma f_inv_eq_f (h : f.Surjective) : f (invFun f b) = b := by
+  rw [Surjective] at h
+  specialize h b
+  exact Function.invFun_eq h
+
+
+#print f_inv_eq_f
+#print Function.invFun_eq
+
+example : Iso f → Iso (Function.invFun f) := by
+  intros h₁
+  rw [Iso] at *
+  cases' h₁ with h₁ h₂
+  constructor
+  . rw [Bijective] at *
+    cases' h₁ with h₃ h₄
+    constructor
+    . sorry
+    . rw [Surjective] at *
+      intros a₁
+      use (f a₁)
+      sorry
+  . intros b₁ b₂
+    constructor
+    . intros h₃
+      specialize h₂ (f.invFun b₁) (f.invFun b₂)
+      rw [h₂]
+      rw [Bijective] at h₁
+      cases' h₁ with l₁ r₁
+      repeat rw [f_inv_eq_f f]
+      repeat assumption
+    . intros h₃
+      specialize h₂ (invFun f b₁) (invFun f b₂)
+      sorry
+
+/-
   Theorem 4.14(iii)
 -/
 
@@ -143,3 +213,33 @@ example : Iso f ∧ Iso g → Iso (g ∘ f) := by
     assumption
 
 end PartialOrder2
+
+namespace PartialOrder3
+
+variable (α : Type)[PartialOrder α]
+variable (A B C: Set α)
+
+structure Chain where
+  S : Set α
+  A : Set α
+  sub : S ⊆ A
+  le_total : ∀ a₁ a₂, (a₁ ∈ S ∧ a₂ ∈ S) → a₁ ≤ a₂ ∨ a₂ ≤ a₁
+
+#print Chain
+
+-- a subset of a chain is a chain
+def SubChain (c₁ : Chain α) (h : C ⊆ c₁.S) : Chain α where
+  S := C
+  A := c₁.S
+  sub := by assumption
+  le_total := by
+    intros a₁ a₂ h₃
+    cases' h₃ with h₂ h₃
+    rw [Set.subset_def] at h
+    apply h at h₂
+    apply h at h₃
+    apply c₁.le_total
+    constructor
+    repeat assumption
+
+end PartialOrder3

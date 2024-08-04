@@ -1,6 +1,6 @@
 import Mathlib.Tactic
 import MathTheorems.AbsoluteValue
-import MathTheorems.Reals
+import MathTheorems.RealNumbers
 
 namespace Reals
 
@@ -45,7 +45,7 @@ lemma propose_c (a b : ℝ) : a ≠ b → ∃ c : ℝ, c ≠ 0 ∧ a = (b + c) :
     norm_num
   . norm_num
 
-#print AbsoluteValue.abs_pos1
+#print abs_pos1
 
 example : Converges a l ∧ Converges a l₂ → l = l₂ := by
   intros h₁
@@ -56,7 +56,7 @@ example : Converges a l ∧ Converges a l₂ → l = l₂ := by
   rcases h₃ with ⟨c, h₃, h₄⟩
   specialize h₁ |c|
   specialize h₂ |c|
-  apply abs_pos c at h₃
+  apply abs_pos1 c at h₃
   have h₅ := h₂ h₃
   have h₆ := h₁ h₃
   cases' h₅ with N₁ h₅

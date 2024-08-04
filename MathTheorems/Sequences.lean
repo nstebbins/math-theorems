@@ -1,4 +1,6 @@
 import Mathlib.Tactic
+import MathTheorems.AbsoluteValue
+import MathTheorems.Reals
 
 namespace Reals
 
@@ -8,15 +10,8 @@ variable (l : ℝ)
 def Converges : Prop :=
   ∀ ε > 0, ∃ N : ℕ, ∀ i : ℕ, i ≥ N → |a i - l| < ε
 
-#print Converges
-
 def Cauchy : Prop :=
   ∀ ε > 0, ∃ N : ℕ, ∀ i j : ℕ, i ≥ N ∧ j ≥ N → |a i - a j| < ε
-
-example (a b : ℝ) : |a + b| ≤ |a| + |b| := by exact abs_add a b
-example (a : ℝ) : |-a| = |a| := by exact abs_neg a
-lemma real_trans (a b: ℝ) : ∀ c : ℝ, a - b = (a + c) - (c - b) := by sorry
-#print real_trans
 
 example : Converges a l → Cauchy a := by
   intros h₁
@@ -50,11 +45,7 @@ lemma propose_c (a b : ℝ) : a ≠ b → ∃ c : ℝ, c ≠ 0 ∧ a = (b + c) :
     norm_num
   . norm_num
 
-lemma ab_pos (a : ℝ) : a ≠ 0 → |a| > 0 := by
-  intros h₁
-  exact abs_pos.mpr h₁
-
-#print ab_pos
+#print AbsoluteValue.abs_pos1
 
 example : Converges a l ∧ Converges a l₂ → l = l₂ := by
   intros h₁
@@ -62,11 +53,10 @@ example : Converges a l ∧ Converges a l₂ → l = l₂ := by
   cases' h₁ with h₁ h₂
   by_contra h₃
   apply propose_c at h₃
-  cases' h₃ with c h₃
-  cases' h₃ with h₃ h₄
+  rcases h₃ with ⟨c, h₃, h₄⟩
   specialize h₁ |c|
   specialize h₂ |c|
-  apply ab_pos c at h₃
+  apply abs_pos c at h₃
   have h₅ := h₂ h₃
   have h₆ := h₁ h₃
   cases' h₅ with N₁ h₅
@@ -84,7 +74,11 @@ def c_a := fun i => c * a i
 
 lemma sim (a b : ℝ) : a > 0 ∧ b > 0 → (a / b) > 0 := by
   intros h₁
-  sorry
+  cases' h₁ with l r
+  rw [gt_iff_lt]
+  rw [lt_div_iff]
+  rw [zero_mul]
+  repeat assumption
 
 example : Converges a l → Converges (c_a a c) (c * l) := by
   intros h₁
@@ -102,7 +96,7 @@ example : Converges a l → Converges (c_a a c) (c * l) := by
   specialize h' N₂
   apply h' at h₃
   rw [c_a]
-  rw [abs_lt] at * -- todo study this missing piece
+  rw [abs_lt] at *
   cases' h₃ with l₂ r₂
   constructor
   . rw [← mul_sub]
@@ -113,7 +107,38 @@ example : Converges a l → Converges (c_a a c) (c * l) := by
 variable (b : ℕ → ℝ)
 
 example (h₁ : Converges a l) (h₂ : Converges b l₂) : Converges (fun i => a i + b i) (l + l₂) := by
-  sorry
+  rw [Converges] at *
+  intros ε h₃
+  obtain ⟨N, hN⟩ := h₁ (ε / 2) (by linarith)
+  obtain ⟨N₂, hN₂⟩ := h₂ (ε / 2) (by linarith)
+  let N_max := max N N₂
+  use N_max
+  intros i h₄
+  specialize hN i
+  specialize hN₂ i
+  have h₅ : N_max ≥ N := by
+    apply Nat.le_max_left
+  have h₆ : N_max ≥ N₂ := by
+    apply Nat.le_max_right
+  have h₅ : i ≥ N := by linarith
+  have h₆ : i ≥ N₂ := by linarith
+  apply hN at h₅
+  apply hN₂ at h₆
+  rw [abs_lt] at *
+  constructor <;> linarith
+
+variable (k : ℝ)
+
+example (h₁ : Converges a l) : Converges (λ i => k + a i) (k + l) := by
+  rw [Converges] at *
+  intros ε h₂
+  obtain ⟨N, h₃⟩ := h₁ ε (by assumption)
+  use N
+  intros i h₄
+  specialize h₃ i
+  apply h₃ at h₄
+  rw [abs_lt] at *
+  constructor <;> linarith
 
 
 end Reals

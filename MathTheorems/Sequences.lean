@@ -47,28 +47,28 @@ lemma propose_c (a b : ℝ) : a ≠ b → ∃ c : ℝ, c ≠ 0 ∧ a = (b + c) :
 
 #print abs_pos1
 
+/-
+  Uniqueness of Limits
+-/
+
+#print lt_iff_exists_add
+
 example : Converges a l ∧ Converges a l₂ → l = l₂ := by
   intros h₁
   repeat rw [Converges] at h₁
-  cases' h₁ with h₁ h₂
+  rcases h₁ with ⟨h₁, h₂⟩
   by_contra h₃
-  apply propose_c at h₃
-  rcases h₃ with ⟨c, h₃, h₄⟩
-  specialize h₁ |c|
-  specialize h₂ |c|
-  apply abs_pos1 c at h₃
-  have h₅ := h₂ h₃
-  have h₆ := h₁ h₃
-  cases' h₅ with N₁ h₅
-  cases' h₆ with N₂ h₆
-  -- think through remaining approach
-  sorry
+  rw [rw_not_eq] at h₃
+  rw [ne_iff_lt_or_gt] at h₃
+  cases' h₃ with h₃ h₃
+  · rw [lt_iff_exists_add] at h₃ -- why doesn't this work?
+  · sorry -- basically same structure of proof
 
 /-
   Algebraic Limit Theorems
 -/
 
-variable (c : ℝ)(h_c : c > 0)
+variable (c : ℝ)
 variable (b : ℕ → ℝ)
 
 example (h₁ : Converges a l) (h₂ : Converges b l₂) : Converges (fun i => a i + b i) (l + l₂) := by
@@ -105,8 +105,6 @@ example (h₁ : Converges a l) : Converges (λ i => k + a i) (k + l) := by
   rw [abs_lt] at *
   constructor <;> linarith
 
-def c_a := fun i => c * a i
-
 lemma sim (a b : ℝ) : a > 0 ∧ b > 0 → (a / b) > 0 := by
   intros h₁
   cases' h₁ with l r
@@ -115,26 +113,46 @@ lemma sim (a b : ℝ) : a > 0 ∧ b > 0 → (a / b) > 0 := by
   rw [zero_mul]
   repeat assumption
 
-example : Converges a l → Converges (c_a a c) (c * l) := by
+example (h : c > 0) : Converges a l → Converges (fun i => c * a i) (c * l) := by
   intros h₁
   rw [Converges] at *
   intros ε h₂
-  specialize h₁ (ε / |c|)
-  have h' : ε / |c| > 0 := by
-    apply sim ε |c|
-    constructor
-    · exact h₂
-    · exact abs_pos_of_pos h_c
-  apply h₁ at h'
-  cases' h' with N h'
+  obtain ⟨N, h₁⟩ := h₁ (ε / c) (by exact abs_div1 ε c h₂ h)
   use N
-  intros N₂ h₃
-  specialize h' N₂
-  apply h' at h₃
-  rw [c_a]
+  intros i h₃
+  specialize h₁ i
+  apply h₁ at h₃
   rw [abs_lt] at *
+  cases' h₃ with h₄ h₅
   constructor
-  · sorry -- todo: complete
-  · sorry
+  · rw [← neg_div] at h₄
+    rw [div_lt_iff] at h₄
+    rw [sub_mul] at h₄
+    linarith
+    assumption
+  · rw [lt_div_iff] at h₅
+    rw [sub_mul] at h₅
+    rw [mul_comm] at h₅
+    nth_rewrite 2 [mul_comm] at h₅
+    repeat assumption
+
+/-
+  Order Limit Theorem
+-/
+example : (∀ i : ℕ, a i ≥ 0) ∧ Converges a l → l ≥ 0 := by
+  intros h₁
+  rcases h₁ with ⟨h₁, h₂⟩
+  rw [Converges] at h₂
+  by_contra h₃
+  rw [not_le] at h₃
+  rw [lt_iff_exists_add1] at h₃
+  rcases h₃ with ⟨c₁, h₃, h₄⟩
+  specialize h₂ c₁ (by assumption)
+  cases' h₂ with N h₅
+  specialize h₅ N (by rfl)
+  specialize h₁ N
+  rw [abs_lt] at h₅
+  cases' h₅ with h₅ h₆
+  linarith
 
 end Reals

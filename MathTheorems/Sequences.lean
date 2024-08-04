@@ -69,41 +69,6 @@ example : Converges a l ∧ Converges a l₂ → l = l₂ := by
 -/
 
 variable (c : ℝ)(h_c : c > 0)
-
-def c_a := fun i => c * a i
-
-lemma sim (a b : ℝ) : a > 0 ∧ b > 0 → (a / b) > 0 := by
-  intros h₁
-  cases' h₁ with l r
-  rw [gt_iff_lt]
-  rw [lt_div_iff]
-  rw [zero_mul]
-  repeat assumption
-
-example : Converges a l → Converges (c_a a c) (c * l) := by
-  intros h₁
-  rw [Converges] at *
-  intros ε h₂
-  specialize h₁ (ε / c)
-  have h' : ε / c > 0 := by
-    apply sim ε c
-    constructor
-    repeat assumption
-  apply h₁ at h'
-  cases' h' with N h'
-  use N
-  intros N₂ h₃
-  specialize h' N₂
-  apply h' at h₃
-  rw [c_a]
-  rw [abs_lt] at *
-  cases' h₃ with l₂ r₂
-  constructor
-  . rw [← mul_sub]
-    sorry -- todo how to proceed
-  . rw [← mul_sub]
-    sorry -- todo how to proceed
-
 variable (b : ℕ → ℝ)
 
 example (h₁ : Converges a l) (h₂ : Converges b l₂) : Converges (fun i => a i + b i) (l + l₂) := by
@@ -140,5 +105,36 @@ example (h₁ : Converges a l) : Converges (λ i => k + a i) (k + l) := by
   rw [abs_lt] at *
   constructor <;> linarith
 
+def c_a := fun i => c * a i
+
+lemma sim (a b : ℝ) : a > 0 ∧ b > 0 → (a / b) > 0 := by
+  intros h₁
+  cases' h₁ with l r
+  rw [gt_iff_lt]
+  rw [lt_div_iff]
+  rw [zero_mul]
+  repeat assumption
+
+example : Converges a l → Converges (c_a a c) (c * l) := by
+  intros h₁
+  rw [Converges] at *
+  intros ε h₂
+  specialize h₁ (ε / |c|)
+  have h' : ε / |c| > 0 := by
+    apply sim ε |c|
+    constructor
+    · exact h₂
+    · exact abs_pos_of_pos h_c
+  apply h₁ at h'
+  cases' h' with N h'
+  use N
+  intros N₂ h₃
+  specialize h' N₂
+  apply h' at h₃
+  rw [c_a]
+  rw [abs_lt] at *
+  constructor
+  · sorry -- todo: complete
+  · sorry
 
 end Reals

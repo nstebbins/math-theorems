@@ -45,7 +45,17 @@ example (h1 : ∀ s ∈ F, A ∪ s ∈ G) : ⋂₀ G ⊆ A ∪ (⋂₀ F) := by
   intro x h₂
   rw [Set.mem_union]
   rw [Set.mem_sInter] at *
-  sorry
+  by_cases h₃ : x ∈ A
+  · left; assumption
+  · right
+    intros f h₄
+    specialize h1 f
+    specialize h₂ (A ∪ f)
+    apply h1 at h₄
+    apply h₂ at h₄
+    cases' h₄ with h₄ h₄
+    · exact False.elim (h₃ h₄)
+    · assumption
 
 end Inters
 
@@ -161,3 +171,30 @@ example : A ∩ (⋃₀ F) = ⋃₀ {s | ∃ u ∈ F, s = A ∩ u} := by
         exact Set.mem_of_mem_inter_right h₂
 
 end Unions
+
+namespace Combinations
+
+variable (F : Set (Set U))
+
+example : (⋃₀ F)ᶜ = ⋂₀ {s | sᶜ ∈ F} := by
+  ext x
+  constructor <;> intro h₁
+  · rw [Set.mem_sInter]
+    intro f h₂
+    rw [Set.mem_setOf] at h₂
+    by_contra h₃
+    apply h₁
+    rw [Set.mem_sUnion]
+    use (fᶜ)
+    constructor
+    · assumption
+    · assumption
+  · rw [Set.mem_sInter] at h₁
+    by_contra h₂
+    rw [Set.mem_compl_iff] at h₂
+    push_neg at h₂
+    rw [Set.mem_sUnion] at h₂
+    rcases h₂ with ⟨f, h₂, h₃⟩
+    sorry -- todo: complete
+
+end Combinations

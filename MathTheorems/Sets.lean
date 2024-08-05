@@ -280,7 +280,12 @@ example: A ∪ A = A := by
     left
     assumption
 
-example: A ∩ A = A := by sorry
+example: A ∩ A = A := by
+  ext x₁
+  rw [Set.mem_inter_iff]
+  constructor <;> intro h₁
+  · exact Set.mem_of_mem_inter_right h₁
+  · constructor <;> assumption
 
 -- TODO: include other laws
 
@@ -301,8 +306,8 @@ example : A ∩ ∅ = ∅ := by
   ext x₁
   constructor <;> intros h₁
   cases' h₁ with l r
-  . assumption
-  . cases' h₁
+  · assumption
+  · cases' h₁
 
 example : A ∪ Set.univ = Set.univ := by
   ext x₁

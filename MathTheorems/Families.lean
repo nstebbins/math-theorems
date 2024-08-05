@@ -3,8 +3,7 @@ import Mathlib.Tactic
 namespace Inters
 
 variable {α : Type}
-variable (F : Set (Set α))
-variable (G : Set (Set α))
+variable (F G : Set (Set α))
 
 example : ⋂₀ (F ∪ G) = ⋂₀ F ∩ ⋂₀ G := by
   ext x
@@ -41,12 +40,124 @@ example : A ⊆ ⋂₀ F ↔ ∀ s ∈ F, A ⊆ s := by
     apply h₁ at h₃
     exact h₃ h₂
 
-example (h1 : ∀ s ∈ F, A ∪ s ∈ G) : ⋂₀ G ⊆ A ∪ (⋂₀ F) := by sorry
+example (h1 : ∀ s ∈ F, A ∪ s ∈ G) : ⋂₀ G ⊆ A ∪ (⋂₀ F) := by
+  rw [Set.subset_def]
+  intro x h₂
+  rw [Set.mem_union]
+  rw [Set.mem_sInter] at *
+  sorry
 
 end Inters
 
 namespace Unions
 
-example (A : Set U) : ∃ s, s ⊆ A := by sorry
+variable (A B : Set U)
+variable (F G : Set (Set U))
+
+example (A : Set U) : ∃ s, s ⊆ A := by
+  apply Exists.intro A
+  exact fun ⦃a⦄ a ↦ a
+
+example (h1 : A ∈ F) : A ⊆ ⋃₀ F := by
+  rw [Set.subset_def]
+  intro x h₁
+  rw [Set.mem_sUnion]
+  use A
+
+example (h1 : F ⊆ G) : ⋃₀ F ⊆ ⋃₀ G := by
+  rw [Set.subset_def]
+  intro x h₂
+  rw [Set.mem_sUnion] at *
+  rcases h₂ with ⟨f, h₂, h₃⟩
+  use f
+  constructor
+  · exact h1 h₂
+  · assumption
+
+example : A ∪ B = ⋃₀ {A, B} := by
+  ext x
+  constructor <;> intro h₁
+  <;> rw [Set.mem_sUnion] at *
+  · cases' h₁ with h₁ h₁
+    · use A
+      constructor
+      · exact Set.mem_insert A {B}
+      · assumption
+    · use B
+      constructor
+      · exact Set.mem_insert_of_mem A rfl
+      · assumption
+  · rcases h₁ with ⟨t, h₁, h₂⟩
+    cases' h₁ with h₁ h₁
+    · rw [← h₁]
+      exact Set.mem_union_left B h₂
+    · rw [← h₁]
+      exact Set.mem_union_right A h₂
+
+example : ⋃₀ (F ∪ G) = (⋃₀ F) ∪ (⋃₀ G) := by
+  ext x₁
+  constructor <;> intro h₁
+  <;> rw [Set.mem_union] at *
+  <;> rw [Set.mem_sUnion] at *
+  · rcases h₁ with ⟨t, h₁, h₂⟩
+    cases' h₁ with h₁ h₁
+    · left; use t
+    · right
+      exact Set.mem_sUnion_of_mem h₂ h₁
+  · cases' h₁ with h₁ h₁
+    · rcases h₁ with ⟨f, h₁, h₂⟩
+      use f
+      constructor
+      · exact Set.mem_union_left G h₁
+      · assumption
+    · rw [Set.mem_sUnion] at h₁
+      rcases h₁ with ⟨t, h₁, h₂⟩
+      use t
+      constructor
+      · exact Set.mem_union_right F h₁
+      · assumption
+
+example : ⋃₀ F ⊆ A ↔ ∀ s ∈ F, s ⊆ A := by
+  constructor <;> intro h₁
+  · intros f h₂
+    rw [Set.subset_def] at *
+    intros x h₃
+    specialize h₁ x
+    rw [Set.mem_sUnion] at h₁
+    apply h₁
+    use f
+  · rw [Set.subset_def]
+    intros x h₂
+    rw [Set.mem_sUnion] at h₂
+    rcases h₂ with ⟨f, h₂, h₃⟩
+    specialize h₁ f
+    apply h₁ h₂ h₃
+
+example : A ∩ (⋃₀ F) = ⋃₀ {s | ∃ u ∈ F, s = A ∩ u} := by
+  ext x
+  constructor <;> intro h₁
+  <;> rw [Set.mem_sUnion] at *
+  · cases' h₁ with h₁ h₂
+    rw [Set.mem_sUnion] at h₂
+    rcases h₂ with ⟨t, h₂, h₃⟩
+    -- what should s be?
+    use (A ∩ t)
+    constructor
+    · rw [Set.mem_setOf]
+      use t
+    · exact Set.mem_inter h₁ h₃
+  · rcases h₁ with ⟨f, h₁, h₂⟩
+    constructor
+    · rw [Set.mem_setOf] at h₁
+      rcases h₁ with ⟨u, h₁, h₃⟩
+      rw [h₃] at h₂
+      exact Set.mem_of_mem_inter_left h₂
+    · rw [Set.mem_sUnion, Set.mem_setOf] at *
+      rcases h₁ with ⟨u, h₁, h₃⟩
+      use u
+      constructor
+      · assumption
+      · rw [h₃] at h₂
+        exact Set.mem_of_mem_inter_right h₂
 
 end Unions

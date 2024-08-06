@@ -171,7 +171,6 @@ example : A ∩ (⋃₀ F) = ⋃₀ {s | ∃ u ∈ F, s = A ∩ u} := by
         exact Set.mem_of_mem_inter_right h₂
 
 end Unions
-
 namespace Combinations
 
 variable (F : Set (Set U))

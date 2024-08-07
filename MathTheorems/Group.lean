@@ -1,4 +1,3 @@
-import Mathlib.Init.ZeroOne
 import Mathlib.Algebra.Group.Defs
 import Mathlib.Tactic
 

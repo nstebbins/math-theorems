@@ -13,12 +13,16 @@ def Converges : Prop :=
 def Cauchy : Prop :=
   ∀ ε > 0, ∃ N : ℕ, ∀ i j : ℕ, i ≥ N ∧ j ≥ N → |a i - a j| < ε
 
+/-
+  Convergence => Cauchy
+-/
+
 example : Converges a l → Cauchy a := by
   intros h₁
   rw [Converges, Cauchy] at *
   intros ε h₂
   specialize h₁ (0.5 * ε)
-  have h₃ : 0.5 * ε > 0 := by sorry
+  have h₃ : 0.5 * ε > 0 := by exact Real.mul_pos (by norm_num) h₂
   apply h₁ at h₃
   cases' h₃ with N h₃
   use N
@@ -29,8 +33,18 @@ example : Converges a l → Cauchy a := by
   rw [← abs_neg (a j - l)] at r₁
   simp at r₁
   rw [real_trans (a i) (a j) l]
-  -- todo: use triangle inequality
-  sorry
+  rw [abs_lt] at *
+  cases' r₁ with l₂ r₂
+  cases' l₁ with l₁ r₁
+  have h₄ : 0.5 * ε + 0.5 * ε = ε := by
+        rw [← mul_add]
+        ring
+  constructor
+  · rw [← h₄]
+    rw [neg_add]
+    apply add_lt_add l₁ l₂
+  · rw [← h₄]
+    apply add_lt_add r₁ r₂
 
 variable (l₂ : ℝ)
 
@@ -61,8 +75,27 @@ example : Converges a l ∧ Converges a l₂ → l = l₂ := by
   rw [rw_not_eq] at h₃
   rw [ne_iff_lt_or_gt] at h₃
   cases' h₃ with h₃ h₃
-  · rw [lt_iff_exists_add] at h₃ -- why doesn't this work?
-  · sorry -- basically same structure of proof
+  · let ε := 0.5 * (l₂ - l)
+    specialize h₁ ε
+    specialize h₂ ε
+    have h₄ : ε > 0 := by
+      apply Real.mul_pos
+      · norm_num
+      · linarith
+    have h₅ := h₁ h₄
+    have h₆ := h₂ h₄
+    rcases h₅ with ⟨N₁, h₅⟩
+    rcases h₆ with ⟨N₂, h₆⟩
+    let N := max N₁ N₂
+    specialize h₅ N (by exact Nat.le_max_left N₁ N₂)
+    specialize h₆ N (by exact Nat.le_max_right N₁ N₂)
+    have h₇ : |a N - l + (a N - l₂)| ≤ |a N - l| + |a N - l₂| := by
+      exact abs_add (a N - l) (a N - l₂)
+    rw [abs_lt] at *
+    rw [abs_le] at *
+    have : 2 * ε = l₂ - l := by ring
+    linarith -- note: just had to get rid of multiplication!
+  · sorry
 
 /-
   Algebraic Limit Theorems
@@ -139,6 +172,7 @@ example (h : c > 0) : Converges a l → Converges (fun i => c * a i) (c * l) := 
 /-
   Order Limit Theorem
 -/
+
 example : (∀ i : ℕ, a i ≥ 0) ∧ Converges a l → l ≥ 0 := by
   intros h₁
   rcases h₁ with ⟨h₁, h₂⟩
